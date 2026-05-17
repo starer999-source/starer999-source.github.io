@@ -1,421 +1,503 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>P/B 圆形可视化</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+  <title>數值記錄計算中心</title>
   <style>
     :root {
-      --md-primary: #5c6bc0;
-      --md-primary-dark: #3949ab;
-      --md-surface: #ffffff;
-      --md-on-surface: #1c1b1f;
-      --md-p: #1565c0;
-      --md-b: #c62828;
-      --circle-size: 15px;
-      --circle-gap: 3px;
-      --fab-size: 56px;
-      --fab-mini: 48px;
+      --bg: #f0f4f8;
+      --surface: #ffffff;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --result: #0d9488;
+      --border: #e2e8f0;
+      --error: #dc2626;
+      --history-bg: #f8fafc;
+      --shadow: 0 1px 3px rgba(15, 23, 42, 0.08), 0 4px 12px rgba(15, 23, 42, 0.06);
+      --radius: 12px;
     }
 
-    * {
+    *,
+    *::before,
+    *::after {
       box-sizing: border-box;
     }
 
     body {
       margin: 0;
       min-height: 100vh;
-      font-family: "Roboto", system-ui, -apple-system, sans-serif;
-      background: linear-gradient(145deg, #7c4dff 0%, #536dfe 35%, #448aff 70%, #00b0ff 100%);
-      background-attachment: fixed;
-      color: var(--md-on-surface);
-      padding: 16px;
-      padding-bottom: 120px;
+      font-family: "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
     }
 
-    .app-title {
+    .app {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 1.5rem 1rem 2.5rem;
+    }
+
+    h1 {
       text-align: center;
-      color: #fff;
-      font-weight: 500;
-      font-size: 1.35rem;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 0 0 1.5rem;
+      color: var(--primary);
       letter-spacing: 0.02em;
-      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-      margin: 8px 0 20px;
     }
 
-    .card {
-      background: var(--md-surface);
-      border-radius: 16px;
-      padding: 20px;
-      max-width: 720px;
-      margin: 0 auto 16px;
-      box-shadow:
-        0 2px 4px rgba(0, 0, 0, 0.12),
-        0 8px 24px rgba(0, 0, 0, 0.15);
+    .section {
+      margin-bottom: 1.25rem;
     }
 
-    .card h2 {
-      margin: 0 0 12px;
+    .section-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .input-grid {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .field label {
+      display: block;
       font-size: 0.875rem;
       font-weight: 500;
-      color: rgba(0, 0, 0, 0.6);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
+      margin-bottom: 0.35rem;
     }
 
-    .input-wrap {
-      position: relative;
-    }
-
-    textarea {
+    .field input[type="number"],
+    .field input[type="text"] {
       width: 100%;
-      min-height: 100px;
-      padding: 16px;
-      border: 1px solid rgba(0, 0, 0, 0.12);
-      border-radius: 12px;
-      font-family: inherit;
-      font-size: 16px;
-      resize: vertical;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      padding: 0.65rem 0.75rem;
+      font-size: 1rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--text);
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
 
-    textarea:focus {
+    .field input:focus {
       outline: none;
-      border-color: var(--md-primary);
-      box-shadow: 0 0 0 3px rgba(92, 107, 192, 0.25);
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
     }
 
-    .hint {
-      margin-top: 8px;
-      font-size: 0.8125rem;
-      color: rgba(0, 0, 0, 0.54);
+    .field input.invalid {
+      border-color: var(--error);
     }
 
-    .row-selector {
+    .results-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1rem;
+    }
+
+    .result-row {
       display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
+      justify-content: space-between;
       align-items: center;
-      margin-top: 4px;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border);
+      gap: 0.75rem;
     }
 
-    .row-selector span.label {
+    .result-row:last-child {
+      border-bottom: none;
+    }
+
+    .result-label {
       font-size: 0.875rem;
-      color: rgba(0, 0, 0, 0.7);
-      margin-right: 4px;
-    }
-
-    .chip {
-      border: none;
-      padding: 0 16px;
-      height: 36px;
-      border-radius: 18px;
-      font-family: inherit;
-      font-size: 0.875rem;
-      font-weight: 500;
-      cursor: pointer;
-      background: rgba(92, 107, 192, 0.12);
-      color: var(--md-primary-dark);
-      transition: background 0.2s, box-shadow 0.2s;
-    }
-
-    .chip:hover {
-      background: rgba(92, 107, 192, 0.2);
-    }
-
-    .chip.active {
-      background: var(--md-primary);
-      color: #fff;
-      box-shadow: 0 2px 6px rgba(57, 73, 171, 0.45);
-    }
-
-    .viz-card {
-      min-height: 120px;
-    }
-
-    .pb-grid {
-      display: flex;
-      flex-direction: column;
-      gap: var(--circle-gap);
-      align-items: flex-start;
-      justify-content: center;
-      padding: 8px 0;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .pb-row {
-      display: flex;
-      flex-direction: row;
-      gap: var(--circle-gap);
-      flex-wrap: nowrap;
-    }
-
-    .dot {
-      width: var(--circle-size);
-      height: var(--circle-size);
-      border-radius: 50%;
+      color: var(--text-muted);
       flex-shrink: 0;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
     }
 
-    .dot.p {
-      background: var(--md-p);
+    .result-value {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--result);
+      font-variant-numeric: tabular-nums;
+      text-align: right;
     }
 
-    .dot.b {
-      background: var(--md-b);
-    }
-
-    .empty-state {
-      color: rgba(0, 0, 0, 0.38);
-      font-size: 0.9375rem;
-      padding: 24px 8px;
-      text-align: center;
-    }
-
-    .legend {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
-      margin-top: 16px;
-      padding-top: 12px;
-      border-top: 1px solid rgba(0, 0, 0, 0.08);
-      font-size: 0.8125rem;
-      color: rgba(0, 0, 0, 0.6);
-    }
-
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .legend-item .dot {
-      width: 12px;
-      height: 12px;
-    }
-
-    /* FAB stack — Material extended FAB style */
-    .fab-container {
-      position: fixed;
-      right: 16px;
-      bottom: 16px;
-      display: flex;
-      flex-direction: column-reverse;
-      align-items: flex-end;
-      gap: 12px;
-      z-index: 100;
-    }
-
-    .fab {
-      width: var(--fab-size);
-      height: var(--fab-size);
-      border-radius: 16px;
-      border: none;
-      cursor: pointer;
-      font-family: inherit;
-      font-weight: 500;
-      font-size: 0.75rem;
+    .btn-save {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      font-size: 1rem;
+      font-weight: 600;
       color: #fff;
-      box-shadow:
-        0 3px 5px rgba(0, 0, 0, 0.2),
-        0 6px 10px rgba(0, 0, 0, 0.14);
-      transition: transform 0.2s, box-shadow 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      line-height: 1.1;
+      background: var(--primary);
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      margin-bottom: 1.25rem;
     }
 
-    .fab:active {
-      transform: scale(0.96);
+    .btn-save:hover {
+      background: var(--primary-hover);
     }
 
-    .fab:focus-visible {
-      outline: 3px solid #fff;
-      outline-offset: 2px;
+    .btn-save:active {
+      transform: scale(0.98);
     }
 
-    .fab-add-p {
-      background: var(--md-p);
+    .history-panel {
+      min-height: 120px;
+      background: var(--history-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      white-space: pre-line;
+      line-height: 1.65;
     }
 
-    .fab-add-b {
-      background: var(--md-b);
+    .history-panel.has-record {
+      color: var(--text);
     }
 
-    .fab-delete {
-      background: #455a64;
-      width: var(--fab-mini);
-      height: var(--fab-mini);
-      border-radius: 12px;
-      font-size: 1.25rem;
+    .history-panel .history-title {
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.35rem;
     }
 
-    @media (max-width: 480px) {
-      body {
-        padding: 12px;
-        padding-bottom: 110px;
+    .message {
+      font-size: 0.8125rem;
+      color: var(--error);
+      min-height: 1.25rem;
+      margin-top: 0.35rem;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 2rem;
+      transform: translateX(-50%) translateY(120%);
+      background: #334155;
+      color: #fff;
+      padding: 0.65rem 1.25rem;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+      opacity: 0;
+      transition: transform 0.25s ease, opacity 0.25s ease;
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    @media (min-width: 480px) {
+      h1 {
+        font-size: 1.75rem;
       }
 
-      .card {
-        padding: 16px;
-        border-radius: 12px;
-      }
-
-      .fab-container {
-        right: 12px;
-        bottom: 12px;
+      .input-grid {
+        grid-template-columns: 1fr 1fr;
       }
     }
   </style>
 </head>
 <body>
-  <h1 class="app-title">文字转圆形 · P / B</h1>
+  <div class="app">
+    <h1>數值記錄計算中心</h1>
 
-  <div class="card">
-    <h2>输入文本</h2>
-    <div class="input-wrap">
-      <textarea id="textInput" placeholder="在此输入任意文本，仅 P 与 B（不区分大小写）会显示为圆点…" spellcheck="false"></textarea>
-    </div>
-    <p class="hint">仅保留 P / b 字符；蓝色圆 = P，红色圆 = B。</p>
-    <div class="row-selector">
-      <span class="label">显示行数</span>
-      <button type="button" class="chip active" data-rows="2">2 行</button>
-      <button type="button" class="chip" data-rows="3">3 行</button>
-      <button type="button" class="chip" data-rows="4">4 行</button>
-      <button type="button" class="chip" data-rows="5">5 行</button>
-      <button type="button" class="chip" data-rows="6">6 行</button>
-    </div>
+    <section class="section" aria-label="輸入區">
+      <div class="input-grid">
+        <div class="field">
+          <label for="target">目標值</label>
+          <input
+            id="target"
+            type="text"
+            inputmode="numeric"
+            autocomplete="off"
+            value="0"
+            aria-describedby="input-message"
+          />
+        </div>
+        <div class="field">
+          <label for="current">當前值</label>
+          <input
+            id="current"
+            type="text"
+            inputmode="numeric"
+            autocomplete="off"
+            value="0"
+            aria-describedby="input-message"
+          />
+        </div>
+      </div>
+      <p id="input-message" class="message" role="alert" aria-live="polite"></p>
+    </section>
+
+    <section class="section" aria-label="計算結果">
+      <p class="section-title">計算結果</p>
+      <div class="results-card">
+        <div class="result-row">
+          <span class="result-label">計算值（原始）</span>
+          <span id="calc-original" class="result-value">0</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">計算值（0.5 倍）</span>
+          <span id="calc-0-5" class="result-value">0</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">計算值（0.34 倍）</span>
+          <span id="calc-0-34" class="result-value">0</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">計算值（1.5 倍）</span>
+          <span id="calc-1-5" class="result-value">0</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">計算值（2 倍）</span>
+          <span id="calc-2" class="result-value">0</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">計算值（3 倍）</span>
+          <span id="calc-3" class="result-value">0</span>
+        </div>
+      </div>
+    </section>
+
+    <button type="button" id="btn-save" class="btn-save">保存記錄</button>
+
+    <section class="section" aria-label="歷史記錄">
+      <p class="section-title">歷史記錄</p>
+      <div id="history" class="history-panel">暫無歷史記錄</div>
+    </section>
   </div>
 
-  <div class="card viz-card">
-    <h2>可视化</h2>
-    <div id="viz" class="pb-grid" aria-live="polite"></div>
-    <div class="legend">
-      <div class="legend-item"><span class="dot p" aria-hidden="true"></span> P</div>
-      <div class="legend-item"><span class="dot b" aria-hidden="true"></span> B</div>
-    </div>
-  </div>
-
-  <div class="fab-container" role="toolbar" aria-label="快捷操作">
-    <button type="button" class="fab fab-add-p" id="fabP" title="追加 P" aria-label="追加 P"><span>P</span></button>
-    <button type="button" class="fab fab-add-b" id="fabB" title="追加 B" aria-label="追加 B"><span>B</span></button>
-    <button type="button" class="fab fab-delete" id="fabDelete" title="删除最后一个字符" aria-label="删除最后一个字符">⌫</button>
-  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite">保存成功</div>
 
   <script>
-    (function () {
-      var textInput = document.getElementById("textInput");
-      var viz = document.getElementById("viz");
-      var rowButtons = document.querySelectorAll(".chip[data-rows]");
-      var fabP = document.getElementById("fabP");
-      var fabB = document.getElementById("fabB");
-      var fabDelete = document.getElementById("fabDelete");
+    const STORAGE_KEYS = {
+      target: "target_value",
+      current: "current_value",
+      original: "calculated_value",
+      half: "calc_0_5x",
+      third: "calc_0_34x",
+      oneHalf: "calc_1_5x",
+      double: "calc_2x",
+      triple: "calc_3x",
+      saved: "record_saved",
+    };
 
-      var rowCount = 2;
+    const INTEGER_PATTERN = /^-?\d+$/;
 
-      function filterPB(str) {
-        var out = [];
-        for (var i = 0; i < str.length; i++) {
-          var c = str.charAt(i);
-          var u = c.toUpperCase();
-          if (u === "P" || u === "B") {
-            out.push(u);
-          }
-        }
-        return out;
-      }
+    const els = {
+      target: document.getElementById("target"),
+      current: document.getElementById("current"),
+      message: document.getElementById("input-message"),
+      original: document.getElementById("calc-original"),
+      half: document.getElementById("calc-0-5"),
+      third: document.getElementById("calc-0-34"),
+      oneHalf: document.getElementById("calc-1-5"),
+      double: document.getElementById("calc-2"),
+      triple: document.getElementById("calc-3"),
+      save: document.getElementById("btn-save"),
+      history: document.getElementById("history"),
+      toast: document.getElementById("toast"),
+    };
 
-      /**
-       * 第 i 个（过滤后的）字符分配到行 (i % rows)。
-       * 同一行内圆点顺序为 i 从小到大。
-       */
-      function buildRows(chars, rows) {
-        var n = chars.length;
-        if (n === 0) return [];
+    let toastTimer = null;
 
-        var buckets = [];
-        for (var r = 0; r < rows; r++) {
-          buckets.push([]);
-        }
-        for (var i = 0; i < n; i++) {
-          buckets[i % rows].push(chars[i]);
-        }
+    function isValidIntegerString(value) {
+      return value === "" || INTEGER_PATTERN.test(value);
+    }
 
-        var grid = [];
-        for (var r = 0; r < rows; r++) {
-          if (buckets[r].length) grid.push(buckets[r]);
-        }
-        return grid;
-      }
+    function parseIntegerOrZero(value) {
+      if (value === "") return 0;
+      return parseInt(value, 10);
+    }
 
-      function render() {
-        var chars = filterPB(textInput.value);
-        viz.innerHTML = "";
+    function intDivTowardZero(a, b) {
+      return Math.trunc(a / b);
+    }
 
-        if (chars.length === 0) {
-          var empty = document.createElement("p");
-          empty.className = "empty-state";
-          empty.textContent = "输入含 P 或 B 的文本，或使用右下角按钮追加。";
-          viz.appendChild(empty);
-          return;
-        }
+    function truncMultiply(value, factor) {
+      return Math.trunc(value * factor);
+    }
 
-        var rows = buildRows(chars, rowCount);
-        for (var i = 0; i < rows.length; i++) {
-          var rowEl = document.createElement("div");
-          rowEl.className = "pb-row";
-          for (var j = 0; j < rows[i].length; j++) {
-            var d = document.createElement("span");
-            d.className = "dot " + (rows[i][j] === "P" ? "p" : "b");
-            d.setAttribute("role", "img");
-            d.setAttribute("aria-label", rows[i][j] === "P" ? "P" : "B");
-            rowEl.appendChild(d);
-          }
-          viz.appendChild(rowEl);
-        }
-      }
+    function computeResults(target, current) {
+      const original = intDivTowardZero(target - current, 10);
+      return {
+        original,
+        half: truncMultiply(original, 0.5),
+        third: truncMultiply(original, 0.34),
+        oneHalf: truncMultiply(original, 1.5),
+        double: original * 2,
+        triple: original * 3,
+      };
+    }
 
-      textInput.addEventListener("input", render);
+    function displayResults(results) {
+      els.original.textContent = String(results.original);
+      els.half.textContent = String(results.half);
+      els.third.textContent = String(results.third);
+      els.oneHalf.textContent = String(results.oneHalf);
+      els.double.textContent = String(results.double);
+      els.triple.textContent = String(results.triple);
+    }
 
-      rowButtons.forEach(function (btn) {
-        btn.addEventListener("click", function () {
-          rowCount = parseInt(btn.getAttribute("data-rows"), 10);
-          rowButtons.forEach(function (b) {
-            b.classList.toggle("active", b === btn);
-          });
-          render();
+    function setInputValidity(valid) {
+      els.target.classList.toggle("invalid", !valid);
+      els.current.classList.toggle("invalid", !valid);
+    }
+
+    function showInputMessage(text) {
+      els.message.textContent = text;
+    }
+
+    function updateCalculations() {
+      const targetStr = els.target.value.trim();
+      const currentStr = els.current.value.trim();
+
+      const targetValid = isValidIntegerString(targetStr);
+      const currentValid = isValidIntegerString(currentStr);
+
+      if (!targetValid || !currentValid) {
+        setInputValidity(false);
+        showInputMessage("請輸入有效的整數");
+        displayResults({
+          original: 0,
+          half: 0,
+          third: 0,
+          oneHalf: 0,
+          double: 0,
+          triple: 0,
         });
-      });
+        return;
+      }
 
-      fabP.addEventListener("click", function () {
-        textInput.value += "P";
-        textInput.focus();
-        render();
-      });
+      setInputValidity(true);
+      showInputMessage("");
 
-      fabB.addEventListener("click", function () {
-        textInput.value += "B";
-        textInput.focus();
-        render();
-      });
+      const target = parseIntegerOrZero(targetStr);
+      const current = parseIntegerOrZero(currentStr);
+      displayResults(computeResults(target, current));
+    }
 
-      fabDelete.addEventListener("click", function () {
-        if (textInput.value.length > 0) {
-          textInput.value = textInput.value.slice(0, -1);
-        }
-        textInput.focus();
-        render();
-      });
+    function buildHistoryHtml(target, current, results) {
+      return (
+        '<span class="history-title">上次保存的記錄：</span>\n' +
+        `目標值=${target}，當前值=${current}\n` +
+        `原始計算值=${results.original}\n` +
+        `0.5倍=${results.half} | 0.34倍=${results.third} | 1.5倍=${results.oneHalf} | 2倍=${results.double} | 3倍=${results.triple}`
+      );
+    }
 
-      render();
-    })();
+    function renderHistory() {
+      if (localStorage.getItem(STORAGE_KEYS.saved) !== "1") {
+        els.history.textContent = "暫無歷史記錄";
+        els.history.classList.remove("has-record");
+        return;
+      }
+
+      const target = localStorage.getItem(STORAGE_KEYS.target) ?? "0";
+      const current = localStorage.getItem(STORAGE_KEYS.current) ?? "0";
+      const results = {
+        original: Number(localStorage.getItem(STORAGE_KEYS.original) ?? 0),
+        half: Number(localStorage.getItem(STORAGE_KEYS.half) ?? 0),
+        third: Number(localStorage.getItem(STORAGE_KEYS.third) ?? 0),
+        oneHalf: Number(localStorage.getItem(STORAGE_KEYS.oneHalf) ?? 0),
+        double: Number(localStorage.getItem(STORAGE_KEYS.double) ?? 0),
+        triple: Number(localStorage.getItem(STORAGE_KEYS.triple) ?? 0),
+      };
+
+      els.history.innerHTML = buildHistoryHtml(target, current, results);
+      els.history.classList.add("has-record");
+    }
+
+    function persistToStorage(targetStr, currentStr, results) {
+      localStorage.setItem(STORAGE_KEYS.target, targetStr);
+      localStorage.setItem(STORAGE_KEYS.current, currentStr);
+      localStorage.setItem(STORAGE_KEYS.original, String(results.original));
+      localStorage.setItem(STORAGE_KEYS.half, String(results.half));
+      localStorage.setItem(STORAGE_KEYS.third, String(results.third));
+      localStorage.setItem(STORAGE_KEYS.oneHalf, String(results.oneHalf));
+      localStorage.setItem(STORAGE_KEYS.double, String(results.double));
+      localStorage.setItem(STORAGE_KEYS.triple, String(results.triple));
+      localStorage.setItem(STORAGE_KEYS.saved, "1");
+    }
+
+    function showToast(text) {
+      els.toast.textContent = text;
+      els.toast.classList.add("show");
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        els.toast.classList.remove("show");
+      }, 1500);
+    }
+
+    function handleSave() {
+      const targetStr = els.target.value.trim();
+      const currentStr = els.current.value.trim();
+
+      if (targetStr === "") {
+        showInputMessage("目標值不能為空");
+        els.target.classList.add("invalid");
+        els.target.focus();
+        return;
+      }
+
+      if (currentStr === "") {
+        showInputMessage("當前值不能為空");
+        els.current.classList.add("invalid");
+        els.current.focus();
+        return;
+      }
+
+      if (!INTEGER_PATTERN.test(targetStr) || !INTEGER_PATTERN.test(currentStr)) {
+        showInputMessage("請輸入有效的整數");
+        setInputValidity(false);
+        return;
+      }
+
+      const target = parseInt(targetStr, 10);
+      const current = parseInt(currentStr, 10);
+      const results = computeResults(target, current);
+
+      persistToStorage(targetStr, currentStr, results);
+      renderHistory();
+      showToast("保存成功");
+      setInputValidity(true);
+      showInputMessage("");
+    }
+
+    function loadFromStorage() {
+      const hasSaved = localStorage.getItem(STORAGE_KEYS.saved) === "1";
+
+      if (hasSaved) {
+        els.target.value = localStorage.getItem(STORAGE_KEYS.target) ?? "0";
+        els.current.value = localStorage.getItem(STORAGE_KEYS.current) ?? "0";
+      }
+
+      updateCalculations();
+      renderHistory();
+    }
+
+    els.target.addEventListener("input", updateCalculations);
+    els.current.addEventListener("input", updateCalculations);
+    els.save.addEventListener("click", handleSave);
+
+    loadFromStorage();
   </script>
 </body>
 </html>

@@ -14,9 +14,9 @@ from datetime import datetime
 # -------- 配置 --------
 
 stocks = [
-    {"name": "广发证券", "code": "000776"},
-    {"name": "浦发银行", "code": "600000"},
-    {"name": "农业银行", "code": "601288"}
+    {"name": "广发证券", "code": "sh000776"},
+    {"name": "浦发银行", "code": "sh600000"},
+    {"name": "农业银行", "code": "sh601288"}
 ]
 
 # -------- 1. 批量获取数据 --------
@@ -26,7 +26,7 @@ data = []
 for s in stocks:
     try:
         print(f"正在获取：{s['name']}...")
-        time.sleep(1.5)  # 防限流
+        time.sleep(5)  # 防限流
         df = ak.stock_zh_a_hist(symbol=s["code"], period="daily", adjust="qfq")
         close_price = df.iloc[-1]["收盘"]  # 取最新收盘价
         data.append({
