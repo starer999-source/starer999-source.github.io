@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>數值記錄計算中心</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1e3a5f;
+            --primary-light: #2a4a73;
+            --secondary-color: #3b82f6;
+            --background-color: #f8fafc;
+            --card-background: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            max-width: 100vw;
+            overflow-x: hidden;
+        }
+
+        body {
+            font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--background-color) 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            padding: 24px 16px;
+            color: var(--text-primary);
+            font-size: 16px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 960px;
+            margin: 0 auto;
+        }
+
+        .page-title {
+            text-align: center;
+            color: var(--primary-color);
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 4px rgba(30, 58, 95, 0.1);
+            padding: 0 8px;
+        }
+
+        .card {
+            background: var(--card-background);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 16px;
+        }
+
+        .input-section {
+            margin-bottom: 20px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 16px;
+        }
+
+        .input-group {
+            flex: 1;
+            margin-bottom: 16px;
+        }
+
+        .input-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 18px;
+            font-family: 'Roboto Mono', monospace;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            background: #fff;
+            min-height: 48px;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .input-field.error {
+            border-color: #ef4444;
+            background: #fef2f2;
+        }
+
+        .results-section {
+            margin-bottom: 20px;
+        }
+
+        .results-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .result-item {
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            padding: 16px 12px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s ease;
+        }
+
+        .result-item:first-child {
+            grid-column: span 2;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+            border: none;
+        }
+
+        .result-item:first-child .result-label,
+        .result-item:first-child .result-value {
+            color: #fff;
+        }
+
+        .result-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .result-value {
+            font-size: 24px;
+            font-family: 'Roboto Mono', monospace;
+            font-weight: 500;
+            color: var(--secondary-color);
+        }
+
+        .save-button {
+            width: 100%;
+            padding: 16px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            font-family: 'Noto Sans TC', sans-serif;
+            color: #fff;
+            background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            min-height: 52px;
+        }
+
+        .save-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .save-button:active {
+            transform: translateY(0);
+        }
+
+        .history-section {
+            background: #f1f5f9;
+            border-radius: 12px;
+            padding: 16px;
+            min-height: 100px;
+            border: 1px solid var(--border-color);
+        }
+
+        .history-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+        }
+
+        .history-empty {
+            color: #94a3b8;
+            font-style: italic;
+            text-align: center;
+            padding: 24px 0;
+        }
+
+        .history-content {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 13px;
+            line-height: 1.8;
+            color: var(--text-primary);
+        }
+
+        .history-content .history-header {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+
+        .history-content .history-main {
+            margin-bottom: 4px;
+        }
+
+        .history-content .history-calc {
+            color: var(--text-secondary);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--primary-color);
+            color: #fff;
+            padding: 14px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: var(--shadow-lg);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            max-width: calc(100% - 32px);
+            text-align: center;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.error {
+            background: #dc2626;
+        }
+
+        .toast.success {
+            background: #059669;
+        }
+
+        @media (max-width: 767px) {
+            body {
+                padding: 16px 12px;
+            }
+
+            .page-title {
+                font-size: 20px;
+                margin-bottom: 20px;
+            }
+
+            .card {
+                padding: 16px;
+                margin-bottom: 12px;
+            }
+
+            .input-row {
+                flex-direction: column;
+                gap: 0;
+            }
+
+            .input-group {
+                margin-bottom: 12px;
+            }
+
+            .input-group:last-child {
+                margin-bottom: 0;
+            }
+
+            .input-label {
+                font-size: 13px;
+                margin-bottom: 6px;
+            }
+
+            .input-field {
+                font-size: 16px;
+                padding: 12px 14px;
+                min-height: 48px;
+            }
+
+            .results-title {
+                font-size: 13px;
+                margin-bottom: 12px;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .result-item {
+                padding: 14px 12px;
+            }
+
+            .result-item:first-child {
+                grid-column: span 1;
+            }
+
+            .result-label {
+                font-size: 11px;
+                margin-bottom: 6px;
+            }
+
+            .result-value {
+                font-size: 20px;
+            }
+
+            .save-button {
+                padding: 14px 20px;
+                font-size: 15px;
+                min-height: 50px;
+                margin-bottom: 16px;
+            }
+
+            .history-section {
+                padding: 14px;
+                min-height: 90px;
+            }
+
+            .history-title {
+                font-size: 13px;
+                margin-bottom: 10px;
+            }
+
+            .history-empty {
+                padding: 20px 0;
+                font-size: 14px;
+            }
+
+            .history-content {
+                font-size: 12px;
+                line-height: 1.7;
+            }
+
+            .toast {
+                padding: 12px 20px;
+                font-size: 13px;
+                bottom: 16px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            body {
+                padding: 32px 24px;
+            }
+
+            .page-title {
+                font-size: 28px;
+                margin-bottom: 32px;
+            }
+
+            .card {
+                padding: 24px;
+                margin-bottom: 20px;
+            }
+
+            .input-section {
+                margin-bottom: 24px;
+            }
+
+            .input-group {
+                margin-bottom: 20px;
+            }
+
+            .input-field {
+                font-size: 18px;
+                padding: 14px 16px;
+            }
+
+            .results-section {
+                margin-bottom: 24px;
+            }
+
+            .results-title {
+                font-size: 14px;
+                margin-bottom: 16px;
+            }
+
+            .results-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+
+            .result-item {
+                padding: 18px 16px;
+            }
+
+            .result-label {
+                font-size: 12px;
+                margin-bottom: 8px;
+            }
+
+            .result-value {
+                font-size: 26px;
+            }
+
+            .save-button {
+                padding: 16px 24px;
+                font-size: 16px;
+                min-height: 52px;
+                margin-bottom: 24px;
+            }
+
+            .history-section {
+                padding: 20px;
+                min-height: 120px;
+            }
+
+            .history-title {
+                font-size: 14px;
+                margin-bottom: 12px;
+            }
+
+            .history-empty {
+                padding: 32px 0;
+            }
+
+            .history-content {
+                font-size: 13px;
+                line-height: 1.8;
+            }
+
+            .toast {
+                padding: 14px 24px;
+                font-size: 14px;
+                bottom: 24px;
+            }
+        }
+
+        @media (min-width: 768px) and (max-width: 1024px) {
+            .container {
+                max-width: 720px;
+            }
+        }
+
+        @media (min-width: 1025px) {
+            .container {
+                max-width: 960px;
+            }
+        }
+
+        @media (min-width: 481px) and (max-width: 767px) {
+            .input-row {
+                flex-direction: row;
+                gap: 12px;
+            }
+
+            .input-group {
+                margin-bottom: 0;
+                flex: 1;
+            }
+
+            .results-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .result-item:first-child {
+                grid-column: span 2;
+            }
+        }
+
+        @media (max-width: 320px) {
+            body {
+                padding: 12px 8px;
+            }
+
+            .page-title {
+                font-size: 18px;
+                margin-bottom: 16px;
+            }
+
+            .card {
+                padding: 12px;
+                margin-bottom: 10px;
+            }
+
+            .input-field {
+                font-size: 14px;
+                padding: 10px 12px;
+                min-height: 44px;
+            }
+
+            .result-value {
+                font-size: 18px;
+            }
+
+            .save-button {
+                padding: 12px 16px;
+                font-size: 14px;
+                min-height: 44px;
+            }
+        }
+
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+            body {
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+            }
+        }
+
+        @media (hover: none) and (pointer: coarse) {
+            .save-button:hover {
+                transform: none;
+            }
+
+            .input-field:focus {
+                font-size: 16px;
+            }
+        }
+
+        @media (orientation: landscape) and (max-height: 500px) {
+            body {
+                padding: 16px 24px;
+            }
+
+            .page-title {
+                font-size: 20px;
+                margin-bottom: 16px;
+            }
+
+            .card {
+                padding: 16px;
+                margin-bottom: 12px;
+            }
+
+            .input-field {
+                padding: 10px 14px;
+                min-height: 44px;
+            }
+
+            .save-button {
+                padding: 12px 20px;
+                min-height: 44px;
+                margin-bottom: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="page-title">數值記錄計算中心</h1>
+
+        <div class="card input-section">
+            <div class="input-row">
+                <div class="input-group">
+                    <label class="input-label" for="targetValue">目標值</label>
+                    <input type="text" 
+                           id="targetValue" 
+                           class="input-field" 
+                           value="0"
+                           inputmode="numeric"
+                           autocomplete="off">
+                </div>
+                <div class="input-group">
+                    <label class="input-label" for="currentValue">當前值</label>
+                    <input type="text" 
+                           id="currentValue" 
+                           class="input-field" 
+                           value="0"
+                           inputmode="numeric"
+                           autocomplete="off">
+                </div>
+            </div>
+        </div>
+
+        <div class="card results-section">
+            <div class="results-title">計算結果</div>
+            <div class="results-grid">
+                <div class="result-item">
+                    <div class="result-label">原始計算值</div>
+                    <div class="result-value" id="resultRaw">0</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">0.5 倍</div>
+                    <div class="result-value" id="result0_5x">0</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">0.34 倍</div>
+                    <div class="result-value" id="result0_34x">0</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">1.5 倍</div>
+                    <div class="result-value" id="result1_5x">0</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">2 倍</div>
+                    <div class="result-value" id="result2x">0</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">3 倍</div>
+                    <div class="result-value" id="result3x">0</div>
+                </div>
+            </div>
+        </div>
+
+        <button class="save-button" id="saveButton">保存記錄</button>
+
+        <div class="history-section">
+            <div class="history-title">歷史記錄</div>
+            <div id="historyContent">
+                <div class="history-empty">暫無歷史記錄</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        (function() {
+            const STORAGE_KEYS = {
+                targetValue: 'target_value',
+                currentValue: 'current_value',
+                calculatedValue: 'calculated_value',
+                calc0_5x: 'calc_0_5x',
+                calc0_34x: 'calc_0_34x',
+                calc1_5x: 'calc_1_5x',
+                calc2x: 'calc_2x',
+                calc3x: 'calc_3x'
+            };
+
+            const elements = {
+                targetValue: document.getElementById('targetValue'),
+                currentValue: document.getElementById('currentValue'),
+                resultRaw: document.getElementById('resultRaw'),
+                result0_5x: document.getElementById('result0_5x'),
+                result0_34x: document.getElementById('result0_34x'),
+                result1_5x: document.getElementById('result1_5x'),
+                result2x: document.getElementById('result2x'),
+                result3x: document.getElementById('result3x'),
+                saveButton: document.getElementById('saveButton'),
+                historyContent: document.getElementById('historyContent'),
+                toast: document.getElementById('toast')
+            };
+
+            let currentResults = {
+                raw: 0,
+                x0_5: 0,
+                x0_34: 0,
+                x1_5: 0,
+                x2: 0,
+                x3: 0
+            };
+
+            function truncateToInt(value) {
+                return value > 0 ? Math.floor(value) : Math.ceil(value);
+            }
+
+            function parseIntegerInput(value) {
+                if (value === '' || value === '-') {
+                    return { valid: true, value: 0 };
+                }
+                
+                const trimmed = value.trim();
+                
+                if (trimmed === '' || trimmed === '-') {
+                    return { valid: true, value: 0 };
+                }
+                
+                const num = Number(trimmed);
+                
+                if (isNaN(num)) {
+                    return { valid: false, value: 0 };
+                }
+                
+                if (!Number.isInteger(num)) {
+                    return { valid: false, value: 0 };
+                }
+                
+                return { valid: true, value: num };
+            }
+
+            function calculateAll(target, current) {
+                const diff = target - current;
+                const raw = truncateToInt(diff / 10);
+                
+                return {
+                    raw: raw,
+                    x0_5: truncateToInt(raw * 0.5),
+                    x0_34: truncateToInt(raw * 0.34),
+                    x1_5: truncateToInt(raw * 1.5),
+                    x2: raw * 2,
+                    x3: raw * 3
+                };
+            }
+
+            function updateResultsDisplay(results) {
+                elements.resultRaw.textContent = results.raw;
+                elements.result0_5x.textContent = results.x0_5;
+                elements.result0_34x.textContent = results.x0_34;
+                elements.result1_5x.textContent = results.x1_5;
+                elements.result2x.textContent = results.x2;
+                elements.result3x.textContent = results.x3;
+                
+                currentResults = results;
+            }
+
+            function resetResultsToZero() {
+                updateResultsDisplay({
+                    raw: 0,
+                    x0_5: 0,
+                    x0_34: 0,
+                    x1_5: 0,
+                    x2: 0,
+                    x3: 0
+                });
+            }
+
+            function validateAndUpdate() {
+                const targetResult = parseIntegerInput(elements.targetValue.value);
+                const currentResult = parseIntegerInput(elements.currentValue.value);
+                
+                if (!targetResult.valid || !currentResult.valid) {
+                    elements.targetValue.classList.add('error');
+                    elements.currentValue.classList.add('error');
+                    showToast('請輸入有效的整數', 'error');
+                    resetResultsToZero();
+                    return;
+                }
+                
+                elements.targetValue.classList.remove('error');
+                elements.currentValue.classList.remove('error');
+                
+                const results = calculateAll(targetResult.value, currentResult.value);
+                updateResultsDisplay(results);
+            }
+
+            function showToast(message, type = 'info') {
+                elements.toast.textContent = message;
+                elements.toast.className = 'toast show';
+                
+                if (type === 'error') {
+                    elements.toast.classList.add('error');
+                } else if (type === 'success') {
+                    elements.toast.classList.add('success');
+                }
+                
+                setTimeout(() => {
+                    elements.toast.classList.remove('show');
+                }, 1500);
+            }
+
+            function saveToLocalStorage() {
+                localStorage.setItem(STORAGE_KEYS.targetValue, String(elements.targetValue.value));
+                localStorage.setItem(STORAGE_KEYS.currentValue, String(elements.currentValue.value));
+                localStorage.setItem(STORAGE_KEYS.calculatedValue, String(currentResults.raw));
+                localStorage.setItem(STORAGE_KEYS.calc0_5x, String(currentResults.x0_5));
+                localStorage.setItem(STORAGE_KEYS.calc0_34x, String(currentResults.x0_34));
+                localStorage.setItem(STORAGE_KEYS.calc1_5x, String(currentResults.x1_5));
+                localStorage.setItem(STORAGE_KEYS.calc2x, String(currentResults.x2));
+                localStorage.setItem(STORAGE_KEYS.calc3x, String(currentResults.x3));
+            }
+
+            function hasValidRecord() {
+                const targetValue = localStorage.getItem(STORAGE_KEYS.targetValue);
+                const currentValue = localStorage.getItem(STORAGE_KEYS.currentValue);
+                
+                if (targetValue === null || currentValue === null) {
+                    return false;
+                }
+                
+                const targetNum = Number(targetValue);
+                const currentNum = Number(currentValue);
+                
+                return !isNaN(targetNum) && !isNaN(currentNum);
+            }
+
+            function loadFromLocalStorage() {
+                if (!hasValidRecord()) {
+                    return null;
+                }
+                
+                const targetValue = parseInt(localStorage.getItem(STORAGE_KEYS.targetValue)) || 0;
+                const currentValue = parseInt(localStorage.getItem(STORAGE_KEYS.currentValue)) || 0;
+                const calculatedValue = parseInt(localStorage.getItem(STORAGE_KEYS.calculatedValue)) || 0;
+                const calc0_5x = parseInt(localStorage.getItem(STORAGE_KEYS.calc0_5x)) || 0;
+                const calc0_34x = parseInt(localStorage.getItem(STORAGE_KEYS.calc0_34x)) || 0;
+                const calc1_5x = parseInt(localStorage.getItem(STORAGE_KEYS.calc1_5x)) || 0;
+                const calc2x = parseInt(localStorage.getItem(STORAGE_KEYS.calc2x)) || 0;
+                const calc3x = parseInt(localStorage.getItem(STORAGE_KEYS.calc3x)) || 0;
+                
+                return {
+                    targetValue: targetValue,
+                    currentValue: currentValue,
+                    calculatedValue: calculatedValue,
+                    calc0_5x: calc0_5x,
+                    calc0_34x: calc0_34x,
+                    calc1_5x: calc1_5x,
+                    calc2x: calc2x,
+                    calc3x: calc3x
+                };
+            }
+
+            function updateHistoryDisplay(record) {
+                if (!record) {
+                    elements.historyContent.innerHTML = '<div class="history-empty">暫無歷史記錄</div>';
+                    return;
+                }
+                
+                const html = `
+                    <div class="history-content">
+                        <div class="history-header">上次保存的記錄：</div>
+                        <div class="history-main">目標值=${record.targetValue}，當前值=${record.currentValue}</div>
+                        <div class="history-main">原始計算值=${record.calculatedValue}</div>
+                        <div class="history-calc">0.5倍=${record.calc0_5x} | 0.34倍=${record.calc0_34x} | 1.5倍=${record.calc1_5x} | 2倍=${record.calc2x} | 3倍=${record.calc3x}</div>
+                    </div>
+                `;
+                
+                elements.historyContent.innerHTML = html;
+            }
+
+            function handleSave() {
+                const targetResult = parseIntegerInput(elements.targetValue.value);
+                const currentResult = parseIntegerInput(elements.currentValue.value);
+                
+                if (!targetResult.valid || !currentResult.valid) {
+                    showToast('請輸入有效的整數', 'error');
+                    return;
+                }
+                
+                if (elements.targetValue.value.trim() === '' || elements.targetValue.value === '-') {
+                    showToast('目標值不能為空', 'error');
+                    return;
+                }
+                
+                if (elements.currentValue.value.trim() === '' || elements.currentValue.value === '-') {
+                    showToast('當前值不能為空', 'error');
+                    return;
+                }
+                
+                saveToLocalStorage();
+                
+                showToast('保存成功', 'success');
+                
+                const record = {
+                    targetValue: targetResult.value,
+                    currentValue: currentResult.value,
+                    calculatedValue: currentResults.raw,
+                    calc0_5x: currentResults.x0_5,
+                    calc0_34x: currentResults.x0_34,
+                    calc1_5x: currentResults.x1_5,
+                    calc2x: currentResults.x2,
+                    calc3x: currentResults.x3
+                };
+                
+                updateHistoryDisplay(record);
+            }
+
+            function initialize() {
+                const savedRecord = loadFromLocalStorage();
+                
+                if (savedRecord) {
+                    elements.targetValue.value = savedRecord.targetValue;
+                    elements.currentValue.value = savedRecord.currentValue;
+                    
+                    const results = calculateAll(savedRecord.targetValue, savedRecord.currentValue);
+                    updateResultsDisplay(results);
+                    
+                    updateHistoryDisplay(savedRecord);
+                }
+                
+                elements.targetValue.addEventListener('input', validateAndUpdate);
+                elements.currentValue.addEventListener('input', validateAndUpdate);
+                elements.saveButton.addEventListener('click', handleSave);
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initialize);
+            } else {
+                initialize();
+            }
+        })();
+    </script>
+</body>
+</html>
