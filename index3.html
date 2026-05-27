@@ -304,7 +304,7 @@
                     </div>
                     <div class="card-body">
                         <div class="input-group">
-                            <input type="text" id="inputText" class="form-control" placeholder="在此輸入或貼上您要轉換的文字...">
+                            <input type="text" id="inputText" class="form-control" placeholder="在此輸入或貼上您要轉換的文字..." readonly>
                         </div>
                         
                         <div class="sd-output">
@@ -371,9 +371,10 @@
     <script>
         function addChar(char) {
             const input = document.getElementById('inputText');
+            input.readOnly = false;
             input.value += char;
+            input.readOnly = true;
             convert();
-            input.focus();
         }
         
         function convert() {
