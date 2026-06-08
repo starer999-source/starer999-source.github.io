@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文字轉換工具</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+
+        .card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-weight: 700;
+            margin: 0;
+            font-size: 2rem;
+        }
+
+        .header .material-icons {
+            font-size: 2.5rem;
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+
+        .input-box, .sd-box, .output-box {
+            height: 60px;
+            font-size: 1.2rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .input-box:focus, .sd-box:focus, .output-box:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+
+        .output-box {
+            height: 500px;
+            resize: none;
+        }
+
+        .btn {
+            height: 44px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            border: none;
+        }
+
+        .btn-success {
+            background: #28a745;
+            border: none;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            border: none;
+            color: #212529;
+        }
+
+        .output-header {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px 12px 0 0;
+            border-bottom: 2px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .output-header h5 {
+            margin: 0;
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .output-container {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+
+        .toast {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .toast.success {
+            background: #28a745;
+            color: white;
+        }
+
+        .toast.error {
+            background: #dc3545;
+            color: white;
+        }
+
+        .floating-buttons {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 1000;
+        }
+
+        .floating-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            font-size: 1.5rem;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .floating-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .floating-btn.delete {
+            background: #dc3545;
+            color: white;
+        }
+
+        .floating-btn.b {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .floating-btn.p {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        @media (pointer: coarse) {
+            .floating-buttons {
+                display: flex;
+            }
+        }
+
+        .sd-container {
+            transition: all 0.3s ease;
+        }
+
+        .sd-container.hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-10 col-xl-8">
+                <div class="card">
+                    <div class="header">
+                        <span class="material-icons">transform</span>
+                        <h1>文字轉換工具</h1>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="d-flex flex-wrap gap-2 mb-4">
+                            <button class="btn btn-primary" onclick="convert()">
+                                <span class="material-icons">autorenew</span>
+                                轉換
+                            </button>
+                            <button class="btn btn-secondary" onclick="clearAll()">
+                                <span class="material-icons">clear</span>
+                                清空
+                            </button>
+                            <button class="btn btn-success" id="toggleSdBtn" onclick="toggleSd()">
+                                <span class="material-icons">visibility</span>
+                                顯示轉換行
+                            </button>
+                            <button class="btn btn-warning" id="toggleInputBtn" onclick="toggleInput()">
+                                <span class="material-icons">lock</span>
+                                允許輸入
+                            </button>
+                        </div>
+                        
+                        <div class="row g-4 mb-4">
+                            <div class="col-12">
+                                <div class="output-container">
+                                    <div class="output-header">
+                                        <h5><span class="material-icons">edit</span> 輸入</h5>
+                                    </div>
+                                    <input type="text" id="inputText" class="form-control" placeholder="在此輸入或貼上您要轉換的文字..." readonly style="border-radius: 0 0 12px 12px; height: 60px; font-size: 1.2rem;">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row g-4 mb-4 sd-container hidden" id="sdContainer">
+                            <div class="col-12 col-md-6">
+                                <div class="output-container">
+                                    <div class="output-header">
+                                        <h5><span class="material-icons">compare_arrows</span> S/D 轉換</h5>
+                                    </div>
+                                    <input type="text" id="sdText" class="form-control" readonly placeholder="S/D 比較結果..." style="border-radius: 0 0 12px 12px; height: 60px; font-size: 1.2rem;">
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="output-container">
+                                    <div class="output-header">
+                                        <h5><span class="material-icons">compare</span> 相隔 S/D 轉換</h5>
+                                    </div>
+                                    <input type="text" id="sd2Text" class="form-control" readonly placeholder="相隔 S/D 比較結果..." style="border-radius: 0 0 12px 12px; height: 60px; font-size: 1.2rem;">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row g-4">
+                            <div class="col-12 col-md-4">
+                                <div class="output-container">
+                                    <div class="output-header">
+                                        <h5><span class="material-icons">swap_horiz</span> B/P 分行</h5>
+                                        <button class="btn btn-sm btn-primary" onclick="copyToClipboard('left')">
+                                            <span class="material-icons">content_copy</span>
+                                            複製
+                                        </button>
+                                    </div>
+                                    <textarea id="outputLeft" class="form-control output-box" readonly></textarea>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <div class="output-container">
+                                    <div class="output-header">
+                                        <h5><span class="material-icons">compare_arrows</span> S/D 分行</h5>
+                                        <button class="btn btn-sm btn-primary" onclick="copyToClipboard('right')">
+                                            <span class="material-icons">content_copy</span>
+                                            複製
+                                        </button>
+                                    </div>
+                                    <textarea id="outputRight" class="form-control output-box" readonly></textarea>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <div class="output-container">
+                                    <div class="output-header">
+                                        <h5><span class="material-icons">compare</span> 相隔 S/D 分行</h5>
+                                        <button class="btn btn-sm btn-primary" onclick="copyToClipboard('sd2')">
+                                            <span class="material-icons">content_copy</span>
+                                            複製
+                                        </button>
+                                    </div>
+                                    <textarea id="outputSd2" class="form-control output-box" readonly></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="floating-buttons" id="floatingButtons">
+        <button class="floating-btn delete" onclick="deleteLastChar()">
+            <span class="material-icons">backspace</span>
+        </button>
+        <button class="floating-btn b" onclick="addChar('B')">B</button>
+        <button class="floating-btn p" onclick="addChar('P')">P</button>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let inputReadonly = true;
+        let sdVisible = false;
+
+        function addChar(char) {
+            const input = document.getElementById('inputText');
+            input.value += char;
+            convert();
+        }
+
+        function deleteLastChar() {
+            const input = document.getElementById('inputText');
+            input.value = input.value.slice(0, -1);
+            convert();
+        }
+
+        function convert() {
+            const input = document.getElementById('inputText').value.toUpperCase();
+            const chars = input.split('').filter(c => c === 'B' || c === 'P');
+            
+            let leftOutput = '';
+            if (chars.length > 0) {
+                let currentChar = chars[0];
+                leftOutput += currentChar;
+                for (let i = 1; i < chars.length; i++) {
+                    if (chars[i] !== currentChar) {
+                        leftOutput += '\n';
+                        currentChar = chars[i];
+                    }
+                    leftOutput += chars[i];
+                }
+            }
+
+            let sdSequence = '';
+            let sdOutput = '';
+            if (chars.length >= 2) {
+                for (let i = 0; i < chars.length - 1; i++) {
+                    sdSequence += chars[i] === chars[i + 1] ? 'S' : 'D';
+                }
+                
+                let currentSd = sdSequence[0];
+                sdOutput += currentSd;
+                for (let i = 1; i < sdSequence.length; i++) {
+                    if (sdSequence[i] !== currentSd) {
+                        sdOutput += '\n';
+                        currentSd = sdSequence[i];
+                    }
+                    sdOutput += sdSequence[i];
+                }
+            }
+
+            let sd2Sequence = '';
+            let sd2Output = '';
+            if (chars.length >= 3) {
+                for (let i = 2; i < chars.length; i++) {
+                    sd2Sequence += chars[i] === chars[i - 2] ? 'S' : 'D';
+                }
+                
+                let currentSd2 = sd2Sequence[0];
+                sd2Output += currentSd2;
+                for (let i = 1; i < sd2Sequence.length; i++) {
+                    if (sd2Sequence[i] !== currentSd2) {
+                        sd2Output += '\n';
+                        currentSd2 = sd2Sequence[i];
+                    }
+                    sd2Output += sd2Sequence[i];
+                }
+            }
+
+            document.getElementById('outputLeft').value = leftOutput;
+            document.getElementById('sdText').value = sdSequence;
+            document.getElementById('outputRight').value = sdOutput;
+            document.getElementById('sd2Text').value = sd2Sequence;
+            document.getElementById('outputSd2').value = sd2Output;
+        }
+
+        function clearAll() {
+            document.getElementById('inputText').value = '';
+            document.getElementById('outputLeft').value = '';
+            document.getElementById('sdText').value = '';
+            document.getElementById('outputRight').value = '';
+            document.getElementById('sd2Text').value = '';
+            document.getElementById('outputSd2').value = '';
+            showToast('已清空所有內容', 'success');
+        }
+
+        function copyToClipboard(side) {
+            let textarea;
+            if (side === 'left') {
+                textarea = document.getElementById('outputLeft');
+            } else if (side === 'right') {
+                textarea = document.getElementById('outputRight');
+            } else {
+                textarea = document.getElementById('outputSd2');
+            }
+            textarea.select();
+            document.execCommand('copy');
+            showToast('已複製到剪貼簿', 'success');
+        }
+
+        function toggleSd() {
+            sdVisible = !sdVisible;
+            const container = document.getElementById('sdContainer');
+            const btn = document.getElementById('toggleSdBtn');
+            
+            if (sdVisible) {
+                container.classList.remove('hidden');
+                btn.innerHTML = '<span class="material-icons">visibility_off</span> 隱藏轉換行';
+            } else {
+                container.classList.add('hidden');
+                btn.innerHTML = '<span class="material-icons">visibility</span> 顯示轉換行';
+            }
+        }
+
+        function toggleInput() {
+            inputReadonly = !inputReadonly;
+            const input = document.getElementById('inputText');
+            const btn = document.getElementById('toggleInputBtn');
+            
+            if (inputReadonly) {
+                input.readOnly = true;
+                btn.innerHTML = '<span class="material-icons">lock</span> 允許輸入';
+            } else {
+                input.readOnly = false;
+                input.focus();
+                btn.innerHTML = '<span class="material-icons">lock_open</span> 禁止輸入';
+            }
+        }
+
+        function showToast(message, type) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type} show`;
+            toast.innerHTML = `
+                <div class="d-flex align-items-center p-3">
+                    <span class="material-icons me-2">${type === 'success' ? 'check_circle' : 'error'}</span>
+                    <div class="flex-grow-1">${message}</div>
+                </div>
+            `;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
